@@ -1,0 +1,23 @@
+# LLM orchestration
+litellm
+openai
+openai-agents
+
+# CLI / integration tooling
+mcp[cli]
+nest-asyncio
+
+# Data & visualization
+matplotlib
+pandas
+yfinance
+
+# Observability
+weave
+
+# App framework
+streamlit
+
+# Development
+mypy
+ruff

@@ -1,0 +1,16 @@
+# Virtual Environment
+venv/
+.env
+
+# Caches
+__pycache__/
+.mypy_cache/
+.ruff_cache/
+.vscode/
+
+# Results and logging
+results/
+logs/
+
+# Images
+*.png

@@ -1,0 +1,6 @@
+# Line length
+line-length = 120
+
+[lint]
+# Line length rule and unused imports
+select = ["E501", "F401"] 
