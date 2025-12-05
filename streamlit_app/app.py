@@ -28,6 +28,7 @@ from streamlit_app.utils_streamlit import (
 )
 from yfinance_server.server import (
     GUARDRAIL_MESSAGE,
+    CaptureToolOutputs,
     MyRunContext,
     hallucination_guardrail,
     instructions_financial_assistant,
@@ -238,6 +239,8 @@ if run_clicked and user_query.strip():
 
         call = weave.require_current_call()
         result = None
+        # Add tool outputs to the context
+        st.session_state.agent.hooks = CaptureToolOutputs()
         try:
             result = await Runner.run(starting_agent=agent, input=user_query, context=ctx)
             # Add Weave reaction to the call
@@ -249,6 +252,7 @@ if run_clicked and user_query.strip():
             st.session_state._feedback_ok = False
             call.feedback.add_reaction("❌")
 
+            # Try to present details, but avoid raising from rendering
             details: dict = {}
             for key in ("guardrail_name", "output_info", "message", "details", "reason"):
                 val = getattr(guardrail_error, key, None)
