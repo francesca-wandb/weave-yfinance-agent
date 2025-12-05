@@ -28,7 +28,6 @@ from streamlit_app.utils_streamlit import (
 )
 from yfinance_server.server import (
     GUARDRAIL_MESSAGE,
-    CaptureToolOutputs,
     MyRunContext,
     hallucination_guardrail,
     instructions_financial_assistant,
@@ -234,15 +233,13 @@ run_clicked = st.button("Run Query")
 if run_clicked and user_query.strip():
 
     @weave.op(name="Agent Workflow")
-    async def _run(user_query: str) -> tuple[Optional[RunResult], Call]:
+    async def _run(agent: Agent, user_query: str, ctx: MyRunContext) -> tuple[Optional[RunResult], Call]:
         """Run the agent for a given user question and context."""
 
         call = weave.require_current_call()
         result = None
-        ctx = MyRunContext(user_question=user_query)
-        st.session_state.agent.hooks = CaptureToolOutputs()
         try:
-            result = await Runner.run(starting_agent=st.session_state.agent, input=user_query, context=ctx)
+            result = await Runner.run(starting_agent=agent, input=user_query, context=ctx)
             # Add Weave reaction to the call
             st.session_state._feedback_ok = True
             call.feedback.add_reaction("✅")
@@ -252,7 +249,6 @@ if run_clicked and user_query.strip():
             st.session_state._feedback_ok = False
             call.feedback.add_reaction("❌")
 
-            # Try to present details, but avoid raising from rendering
             details: dict = {}
             for key in ("guardrail_name", "output_info", "message", "details", "reason"):
                 val = getattr(guardrail_error, key, None)
@@ -265,10 +261,14 @@ if run_clicked and user_query.strip():
 
         except Exception as e:
             st.error(f"Agent error: {e}")
+
         return result, call
 
     with st.spinner("Agent is processing..."):
-        result, call = run_async(_run(user_query))
+        # Create run context
+        ctx = MyRunContext(user_question=user_query)
+        # Main call
+        result, call = run_async(_run(st.session_state.agent, user_query, ctx))
         st.session_state._last_result = result
         st.session_state._feedback_ok = True
 
